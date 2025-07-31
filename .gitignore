@@ -16,6 +16,7 @@ node_modules
 *.launch
 .settings/
 *.sublime-workspace
+.cursor/
 
 # IDE - VSCode
 .vscode/*
@@ -42,3 +43,10 @@ Thumbs.db
 .nx/workspace-data
 .cursor/rules/nx-rules.mdc
 .github/instructions/nx.instructions.md
+
+vite.config.*.timestamp*
+vitest.config.*.timestamp*
+test-output
+
+.early.coverage
+/generated/prisma

@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  password       String
+  role           UserRole
+  name           String
+  avatarUrl      String?
+  phone          String?
+  bio            String?
+  licenseNumber  String?  // solo si es profesional
+  specialty      String?  // idem
+  appointmentsAsPatient   Appointment[] @relation("PatientAppointments")
+  appointmentsAsProfessional Appointment[] @relation("ProfessionalAppointments")
+  availabilities Availability[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+enum UserRole {
+  PATIENT
+  PROFESSIONAL
+}
+
+model Appointment {
+  id             String   @id @default(cuid())
+  patient        User     @relation("PatientAppointments", fields: [patientId], references: [id])
+  patientId      String
+  professional   User     @relation("ProfessionalAppointments", fields: [professionalId], references: [id])
+  professionalId String
+  date           DateTime
+  durationMin    Int
+  status         AppointmentStatus
+  price          Float
+  paid           Boolean  @default(false)
+  notes          String?
+  payment        Payment?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  CANCELED
+  COMPLETED
+}
+
+model Availability {
+  id             String   @id @default(cuid())
+  professional   User     @relation(fields: [professionalId], references: [id])
+  professionalId String
+  dayOfWeek      Int      // 0 = Domingo, 1 = Lunes, etc.
+  startTime      String   // formato HH:mm
+  endTime        String
+}
+
+model Payment {
+  id             String   @id @default(cuid())
+  appointment    Appointment @relation(fields: [appointmentId], references: [id])
+  appointmentId  String   @unique
+  amount         Float
+  method         PaymentMethod
+  status         PaymentStatus
+  transactionId  String?
+  createdAt      DateTime @default(now())
+}
+
+enum PaymentMethod {
+  STRIPE
+  PAYPAL
+  MANUAL
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
