@@ -50,3 +50,8 @@ test-output
 
 .early.coverage
 /generated/prisma
+
+# Environment variables
+.env
+.env.*
+!.env.example

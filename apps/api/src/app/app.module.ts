@@ -6,6 +6,8 @@ import { UsersModule } from './users/users.module';
 import { AppointmentsModule } from './appointments/appointments.module';
 import { AvailabilityModule } from './availabilities/availability.module';
 import { PaymentsModule } from './payments/payments.module';
+import { AuthModule } from './auth/auth.module';
+import { Request, Response } from 'express';
 
 @Module({
   imports: [
@@ -13,8 +15,13 @@ import { PaymentsModule } from './payments/payments.module';
       driver: ApolloDriver,
       autoSchemaFile: true,
       playground: true,
+      context: ({ req, res }: { req: Request; res: Response }) => ({
+        req,
+        res,
+      }),
     }),
     PrismaModule,
+    AuthModule,
     UsersModule,
     AppointmentsModule,
     AvailabilityModule,

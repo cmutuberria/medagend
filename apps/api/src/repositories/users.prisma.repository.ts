@@ -8,13 +8,18 @@ import {
   User,
 } from '../dto/user.dto';
 import type { UserRepositoryInterface } from '../interfaces/users.repository.interface';
-
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UserPrismaRepository implements UserRepositoryInterface {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateUserInput): Promise<User> {
-    const user = await this.prisma.user.create({ data });
+    const user = await this.prisma.user.create({
+      data: {
+        ...data,
+        password: await bcrypt.hash(data.password, 10),
+      },
+    });
     return convertPrismaToDto(user);
   }
 
@@ -30,6 +35,13 @@ export class UserPrismaRepository implements UserRepositoryInterface {
 
   async update(id: string, data: UpdateUserInput): Promise<User> {
     try {
+      // Encriptar la contraseña si se está actualizando
+      const dataToUpdate = {
+        ...data,
+        ...(data.password && {
+          password: await bcrypt.hash(data.password, 10),
+        }),
+      };
       const user = await this.prisma.user.update({ where: { id }, data });
       return convertPrismaToDto(user);
     } catch (error) {
@@ -75,5 +87,12 @@ export class UserPrismaRepository implements UserRepositoryInterface {
       }
       throw error;
     }
+  }
+
+  async login(email: string, password: string): Promise<User | null> {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+    if (!user) return null;
+    const match = await bcrypt.compare(password, user.password);
+    return match ? convertPrismaToDto(user) : null;
   }
 }

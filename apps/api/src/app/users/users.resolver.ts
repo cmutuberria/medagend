@@ -1,6 +1,10 @@
 import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
 import { UserService } from './users.service';
 import { User, CreateUserInput, UpdateUserInput } from '../../dto/user.dto';
+import { GqlAuthGuard } from '../auth/gql-auth.guard';
+import { UseGuards } from '@nestjs/common';
+import { AuthTokenPayload } from '../../dto/auth.dto';
+import { CurrentUser } from '../auth/current-user.decorator';
 
 @Resolver(() => User)
 export class UserResolver {
@@ -15,6 +19,7 @@ export class UserResolver {
     name: 'users',
     description: 'Obtener todos los usuarios',
   })
+  @UseGuards(GqlAuthGuard)
   findAll(): Promise<User[]> {
     return this.userService.findAll();
   }

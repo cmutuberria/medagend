@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
+// import * as bcrypt from 'bcrypt';
 import type { UserRepositoryInterface } from '../../interfaces/users.repository.interface';
 import { CreateUserInput, UpdateUserInput, User } from '../../dto/user.dto';
 
@@ -23,17 +23,7 @@ export class UserService {
     if (existingUser) {
       throw new ConflictException('El email ya está registrado');
     }
-
-    // Encriptar la contraseña
-    const hashedPassword = await bcrypt.hash(createUserInput.password, 10);
-
-    // Crear el usuario
-    const user = await this.userRepository.create({
-      ...createUserInput,
-      password: hashedPassword,
-    });
-
-    // Retornar sin la contraseña
+    const user = await this.userRepository.create(createUserInput);
     return user;
   }
 
@@ -67,15 +57,7 @@ export class UserService {
       }
     }
 
-    // Encriptar la contraseña si se está actualizando
-    const data = {
-      ...updateUserInput,
-      ...(updateUserInput.password && {
-        password: await bcrypt.hash(updateUserInput.password, 10),
-      }),
-    };
-
-    return await this.userRepository.update(id, data);
+    return await this.userRepository.update(id, updateUserInput);
   }
 
   async remove(id: string): Promise<User> {

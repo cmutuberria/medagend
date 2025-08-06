@@ -9,4 +9,5 @@ export interface UserRepositoryInterface {
   remove(id: string): Promise<User>;
   findProfessionals(): Promise<User[]>;
   findPatients(): Promise<User[]>;
+  login(email: string, password: string): Promise<User | null>;
 }
