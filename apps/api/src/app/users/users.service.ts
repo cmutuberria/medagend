@@ -67,6 +67,12 @@ export class UserService {
   async findProfessionals(): Promise<User[]> {
     return this.userRepository.findProfessionals();
   }
+  async findProfessionalsByQuery(
+    name?: string,
+    specialty?: string[]
+  ): Promise<User[]> {
+    return this.userRepository.findProfessionalsByQuery(name, specialty);
+  }
 
   async findPatients(): Promise<User[]> {
     return this.userRepository.findPatients();

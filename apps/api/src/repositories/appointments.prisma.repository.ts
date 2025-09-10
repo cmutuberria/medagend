@@ -21,22 +21,13 @@ export class AppointmentPrismaRepository
   }
 
   async findAll(): Promise<Appointment[]> {
-    const appointments = await this.prisma.appointment.findMany({
-      include: {
-        patient: true,
-        professional: true,
-      },
-    });
+    const appointments = await this.prisma.appointment.findMany();
     return appointments.map(convertPrismaToDto);
   }
 
   async findById(id: string): Promise<Appointment | null> {
     const appointment = await this.prisma.appointment.findUnique({
       where: { id },
-      include: {
-        patient: true,
-        professional: true,
-      },
     });
     return appointment ? convertPrismaToDto(appointment) : null;
   }
@@ -46,10 +37,6 @@ export class AppointmentPrismaRepository
       const appointment = await this.prisma.appointment.update({
         where: { id },
         data,
-        include: {
-          patient: true,
-          professional: true,
-        },
       });
       return convertPrismaToDto(appointment);
     } catch (error) {
@@ -67,10 +54,6 @@ export class AppointmentPrismaRepository
     try {
       const appointment = await this.prisma.appointment.delete({
         where: { id },
-        include: {
-          patient: true,
-          professional: true,
-        },
       });
       return convertPrismaToDto(appointment);
     } catch (error) {
@@ -87,10 +70,6 @@ export class AppointmentPrismaRepository
   async findByPatientId(patientId: string): Promise<Appointment[]> {
     const appointments = await this.prisma.appointment.findMany({
       where: { patientId },
-      include: {
-        patient: true,
-        professional: true,
-      },
       orderBy: { date: 'desc' },
     });
     return appointments.map(convertPrismaToDto);
@@ -99,11 +78,56 @@ export class AppointmentPrismaRepository
   async findByProfessionalId(professionalId: string): Promise<Appointment[]> {
     const appointments = await this.prisma.appointment.findMany({
       where: { professionalId },
+      orderBy: { date: 'desc' },
+    });
+    return appointments.map(convertPrismaToDto);
+  }
+
+  async findByProfessionalIdAndDay(
+    professionalId: string,
+    date: Date
+  ): Promise<Appointment[]> {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+    console.log({
+      date,
+      startOfDay,
+      endOfDay,
+    });
+
+    const appointments = await this.prisma.appointment.findMany({
+      where: {
+        professionalId,
+        date,
+      },
+      orderBy: { date: 'desc' },
+    });
+    console.log('appointments', appointments);
+    return appointments.map(convertPrismaToDto);
+  }
+
+  async findByDay(date: Date): Promise<Appointment[]> {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const appointments = await this.prisma.appointment.findMany({
+      where: {
+        date: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
       include: {
         patient: true,
         professional: true,
       },
-      orderBy: { date: 'desc' },
+      orderBy: { date: 'asc' },
     });
     return appointments.map(convertPrismaToDto);
   }

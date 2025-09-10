@@ -14,17 +14,14 @@ async function bootstrap() {
   // Configurar middleware de cookies
   app.use(cookieParser());
   app.enableCors({
-    // origin: 'http://localhost:4200',
-    // credentials: true,
+    origin: true, // Cambia esto si tu frontend corre en otro puerto
+    credentials: true,
   });
 
-  const globalPrefix = 'api';
-  app.setGlobalPrefix(globalPrefix);
+  // No usar prefijo global que rompa la ruta de /graphql
   const port = process.env.PORT || 8080;
   await app.listen(port);
-  Logger.log(
-    `🚀 Application is running on: http://localhost:${port}/${globalPrefix}`
-  );
+  Logger.log(`🚀 Application is running on: http://localhost:${port}`);
 }
 
 bootstrap();

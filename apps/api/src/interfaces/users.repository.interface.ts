@@ -8,6 +8,10 @@ export interface UserRepositoryInterface {
   findByEmail(email: string): Promise<User | null>;
   remove(id: string): Promise<User>;
   findProfessionals(): Promise<User[]>;
+  findProfessionalsByQuery(
+    name?: string,
+    specialty?: string[]
+  ): Promise<User[]>;
   findPatients(): Promise<User[]>;
   login(email: string, password: string): Promise<User | null>;
 }

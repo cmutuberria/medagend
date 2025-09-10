@@ -1,66 +1,58 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authClient } from '../client/auth.client';
-import { create } from 'zustand';
 import { useAuthStore } from '../stores/auth.store';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-}
+import { User, CreateUserInput } from '../models/user.model';
 
 interface AuthContextType {
+  token: string | null;
   user: User | null;
   isAuthenticated: boolean;
+  signup: (user: CreateUserInput) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
-  loading: boolean;
+  logout: () => Promise<void>;
+  refresh: () => Promise<void>;
 }
 
 export const useAuth = (): AuthContextType => {
-  const [loading, setLoading] = useState(true);
   const { user, setUser, token, setToken } = useAuthStore();
 
   const navigate = useNavigate();
-  useEffect(() => {
-    // Verificar si hay datos de autenticación al cargar la aplicación
-
-    if (token && user) {
-      try {
-        setUser(user);
-      } catch (error) {
-        console.error('Error parsing user data:', error);
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
-      }
-    }
-
-    setLoading(false);
-  }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
+    console.log('login', email, password);
     const token = await authClient.login(email, password);
     setToken(token);
     const userData = await authClient.me();
     setUser(userData);
-    setLoading(false);
+  };
+
+  const refresh = async () => {
+    const token = await authClient.refresh();
+    setToken(token);
   };
 
   const logout = async () => {
+    console.log('logout');
     setUser(null);
     setToken(null);
-    authClient.logout().catch((error) => {
+    await authClient.logout().catch((error) => {
       console.error('Error logging out:', error);
     });
     navigate('/login');
   };
 
+  const signup = async (user: CreateUserInput) => {
+    await authClient.signup(user);
+    await login(user.email, user.password);
+  };
+
   return {
     user,
     isAuthenticated: !!user,
+    token,
     login,
     logout,
-    loading,
+    refresh,
+    signup,
   };
 };

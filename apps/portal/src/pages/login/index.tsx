@@ -1,163 +1,116 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Eye, EyeOff, Heart, LogIn } from 'lucide-react';
 import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../../components/layouts/AuthLayout';
+import { CustomInput } from '../../components/UI/custom-input';
 import { useAuth } from '../../hooks/useAuth';
+import { Login, LoginSchema } from '../../models/auth.model';
 
 export const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [serverError, setServerError] = useState('');
 
   const navigate = useNavigate();
-  const location = useLocation();
-  const { login, user } = useAuth();
+  const { login } = useAuth();
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<Login>({
+    resolver: zodResolver(LoginSchema),
+  });
+  const onSubmit = async (data: Login) => {
     try {
-      await login(formData.email, formData.password);
-      console.log({ user });
-      // Redirigir a la página que intentaba visitar o al dashboard
-      const from = location.state?.from?.pathname || '/dashboard';
-      navigate(from, { replace: true });
+      await login(data.email, data.password);
+      navigate('/dashboard');
     } catch (err) {
-      setError('Error al iniciar sesión. Verifica tus credenciales.');
-    } finally {
-      setLoading(false);
+      setServerError('Error al iniciar sesión. Verifica tus credenciales.');
     }
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
   return (
-    <AuthLayout title="Let's Sign In">
-      {/* Welcome Message */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900">Welcome!</h2>
+    <AuthLayout>
+      <div className="text-center pb-6 pt-8 px-6">
+        <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full flex items-center justify-center mb-4">
+          <Heart className="w-8 h-8 text-white" />
+        </div>
+        <h1 className="text-2xl text-gray-800 mb-2">Iniciar Sesión</h1>
+        <p className="text-gray-600">Accede a tu cuenta de salud</p>
       </div>
 
       {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          {error}
+      {serverError && (
+        <div className="px-6 pb-6">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            {serverError}
+          </div>
         </div>
       )}
 
       {/* Login Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Email Input */}
-        <div>
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleInputChange}
-            className="w-full px-4 py-4 bg-white rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 text-gray-900"
-            required
-          />
-        </div>
+      <div className="px-6 pb-6">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-4">
+            <CustomInput
+              label="Correo electrónico"
+              register={register('email')}
+              error={errors.email?.message}
+              required
+            />
 
-        {/* Password Input */}
-        <div className="relative">
-          <input
-            type={showPassword ? 'text' : 'password'}
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleInputChange}
-            className="w-full px-4 py-4 bg-white rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 text-gray-900 pr-12"
-            required
-          />
+            <CustomInput
+              label="Contraseña"
+              type={showPassword ? 'text' : 'password'}
+              register={register('password')}
+              error={errors.password?.message}
+              required
+            >
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </CustomInput>
+          </div>
+
+          <div className="flex items-center justify-between text-sm">
+            <button
+              type="button"
+              className="text-blue-600 hover:text-blue-400 hover:underline transition-colors"
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          </div>
+
           <button
-            type="button"
-            onClick={togglePasswordVisibility}
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            type="submit"
+            className="w-full bg-blue-500  hover:bg-blue-400  text-white py-3 px-4 rounded-md transition-all duration-200 flex items-center justify-center gap-2 mt-6"
           >
-            {showPassword ? (
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
-                />
-              </svg>
-            ) : (
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                />
-              </svg>
-            )}
+            <LogIn className="w-4 h-4" />
+            Iniciar sesión
           </button>
+        </form>
+
+        <div className="text-center mt-6 pt-4 border-t border-gray-200">
+          <p className="text-sm text-gray-600">
+            ¿No tienes una cuenta?{' '}
+            <Link
+              to="/signup"
+              className="text-blue-500 hover:text-blue-400 hover:underline transition-colors"
+            >
+              Crear cuenta
+            </Link>
+          </p>
         </div>
-
-        {/* Forgot Password Link */}
-        <div className="text-right">
-          <Link
-            to="/forgot-password"
-            className="text-blue-500 hover:text-blue-600 font-medium text-sm"
-          >
-            Forgot Password?
-          </Link>
-        </div>
-
-        {/* Sign In Button */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-500 text-white font-bold py-4 px-6 rounded-xl hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? 'Iniciando sesión...' : 'Sign In'}
-        </button>
-      </form>
-
-      {/* Sign Up Link */}
-      <div className="mt-8 text-center">
-        <span className="text-gray-600 text-sm">Don't have an account? </span>
-        <Link
-          to="/signup"
-          className="text-blue-500 hover:text-blue-600 font-medium text-sm"
-        >
-          Sign Up
-        </Link>
       </div>
     </AuthLayout>
   );

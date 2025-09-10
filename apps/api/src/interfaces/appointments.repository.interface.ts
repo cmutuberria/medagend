@@ -12,6 +12,10 @@ export interface AppointmentRepositoryInterface {
   remove(id: string): Promise<Appointment>;
   findByPatientId(patientId: string): Promise<Appointment[]>;
   findByProfessionalId(professionalId: string): Promise<Appointment[]>;
+  findByProfessionalIdAndDay(
+    professionalId: string,
+    date: Date
+  ): Promise<Appointment[]>;
   findByStatus(status: string): Promise<Appointment[]>;
   findByDateRange(startDate: Date, endDate: Date): Promise<Appointment[]>;
 }

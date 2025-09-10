@@ -1,140 +1,249 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { zodResolver } from '@hookform/resolvers/zod';
+import {
+  Eye,
+  EyeOff,
+  Heart,
+  Loader2,
+  Stethoscope,
+  UserCheck,
+  User as UserIcon,
+} from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import AuthLayout from '../../components/layouts/AuthLayout';
-
+import { useAuth } from '../../hooks/useAuth';
+import {
+  CreateUserInput,
+  CreateUserInputSchema,
+  UserRoleSchema,
+  SpecialtySchema,
+} from '../../models/user.model';
+import { CustomInput } from '../../components/UI/custom-input';
+import { CustomSelect } from '../../components/UI/custom-select';
 export const SignUpPage: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('patient');
   const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
+  const [serverError, setServerError] = useState('');
+  const { signup } = useAuth();
+  const navigate = useNavigate();
+  // const location = useLocation();
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm<CreateUserInput>({
+    resolver: zodResolver(CreateUserInputSchema),
+    defaultValues: {
+      role: UserRoleSchema.enum.PATIENT,
+    },
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  // Sincronizar el tab con el campo role del formulario
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Aquí iría la lógica de registro
-    console.log('Sign up attempt:', formData);
-  };
+  useEffect(() => {
+    setValue(
+      'role',
+      activeTab === 'patient'
+        ? UserRoleSchema.enum.PATIENT
+        : UserRoleSchema.enum.PROFESSIONAL
+    );
+    if (activeTab === 'patient') {
+      setValue('bio', undefined);
+      setValue('licenseNumber', undefined);
+      setValue('specialty', undefined);
+    }
+  }, [activeTab, setValue]);
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
+  const onSubmit = async (data: CreateUserInput) => {
+    try {
+      // Convertir UserInput a CreateUserInput
+
+      console.log('signup data to send', data);
+      await signup(data);
+      // const from = location.state?.from?.pathname || '/dashboard';
+      // navigate(from, { replace: true });
+      navigate('/dashboard');
+    } catch (err) {
+      setServerError('Error al crear la cuenta. Verifica tus datos.');
+    }
   };
 
   return (
-    <AuthLayout title="Let's Sign Up">
-      {/* Welcome Message */}
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold text-gray-900">Create Account!</h2>
+    <AuthLayout>
+      {/* Header */}
+      <div className="text-center pb-6 pt-8 px-6">
+        <div className="mx-auto w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full flex items-center justify-center mb-4">
+          <Heart className="w-8 h-8 text-white" />
+        </div>
+        <h1 className="text-2xl text-gray-800 mb-2">Crear Cuenta</h1>
+        <p className="text-gray-600">Únete a nuestra plataforma de salud</p>
       </div>
 
-      {/* Sign Up Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Name Input */}
-        <div>
-          <input
-            type="text"
-            name="name"
-            placeholder="Name"
-            value={formData.name}
-            onChange={handleInputChange}
-            className="w-full px-4 py-4 bg-white rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 text-gray-900"
-            required
-          />
+      {/* Error Message */}
+
+      {serverError && (
+        <div className="px-6 pb-6">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            {serverError}
+          </div>
+        </div>
+      )}
+
+      <div className="px-6 pb-6">
+        {/* Tabs */}
+        <div className="mb-6">
+          <div className="grid grid-cols-2 bg-gray-100 rounded-lg p-1">
+            <button
+              type="button"
+              onClick={() => setActiveTab('patient')}
+              className={`flex items-center justify-center gap-2 py-2 px-4 rounded-md transition-all ${
+                activeTab === 'patient'
+                  ? 'bg-blue-500 text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              <UserIcon className="w-4 h-4" />
+              Paciente
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('doctor')}
+              className={`flex items-center justify-center gap-2 py-2 px-4 rounded-md transition-all ${
+                activeTab === 'doctor'
+                  ? 'bg-blue-500 text-white shadow-sm'
+                  : 'text-gray-600 hover:text-gray-800'
+              }`}
+            >
+              <Stethoscope className="w-4 h-4" />
+              Doctor
+            </button>
+          </div>
+          {errors.role && (
+            <p className="text-red-500 text-sm">{errors.role.message}</p>
+          )}
         </div>
 
-        {/* Email Input */}
-        <div>
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleInputChange}
-            className="w-full px-4 py-4 bg-white rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 text-gray-900"
-            required
-          />
-        </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Common fields */}
+          <div className="space-y-4">
+            <CustomInput
+              label="Nombre completo"
+              placeholder="Ingresa tu nombre completo"
+              register={register('name')}
+              error={errors.name?.message}
+              required
+            />
 
-        {/* Password Input */}
-        <div className="relative">
-          <input
-            type={showPassword ? 'text' : 'password'}
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleInputChange}
-            className="w-full px-4 py-4 bg-white rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500 text-gray-900 pr-12"
-            required
-          />
+            <CustomInput
+              label="Correo electrónico"
+              placeholder="tu@email.com"
+              register={register('email')}
+              error={errors.email?.message}
+              required
+            />
+
+            <CustomInput
+              label="Teléfono"
+              placeholder="+1 (555) 000-0000"
+              register={register('phone')}
+              error={errors.phone?.message}
+              required
+            />
+
+            <CustomInput
+              label="Contraseña"
+              type={showPassword ? 'text' : 'password'}
+              register={register('password')}
+              error={errors.password?.message}
+              required
+            >
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </button>
+            </CustomInput>
+          </div>
+
+          {/* Doctor specific fields */}
+          {activeTab === 'doctor' && (
+            <div className="space-y-4 pt-4 border-t border-gray-200">
+              <h3 className="text-lg text-gray-800 mb-4">
+                Información Profesional
+              </h3>
+
+              <div className="space-y-4">
+                <CustomInput
+                  label="Número de licencia profesional"
+                  register={register('licenseNumber')}
+                  error={errors.licenseNumber?.message}
+                  required
+                />
+
+                <CustomSelect
+                  label="Especialidad"
+                  register={register('specialty')}
+                  error={errors.specialty?.message}
+                  required
+                  options={Object.values(SpecialtySchema.enum).map(
+                    (specialty) => ({
+                      value: specialty,
+                      label:
+                        specialty.charAt(0).toUpperCase() +
+                        specialty.slice(1).toLowerCase(),
+                    })
+                  )}
+                />
+
+                <CustomInput
+                  type="textarea"
+                  label="Biografía profesional"
+                  placeholder="Describe tu experiencia, educación y enfoque médico..."
+                  register={register('bio')}
+                  error={errors.bio?.message}
+                  required
+                  rows={4}
+                />
+              </div>
+            </div>
+          )}
+
           <button
-            type="button"
-            onClick={togglePasswordVisibility}
-            className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+            type="submit"
+            disabled={isSubmitting}
+            className="w-full bg-blue-500 hover:from-blue-600 text-white py-3 px-4 rounded-md transition-all duration-200 flex items-center justify-center gap-2 mt-6"
           >
-            {showPassword ? (
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
-                />
-              </svg>
+            {isSubmitting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                />
-              </svg>
+              <>
+                <UserCheck className="w-4 h-4" />
+                Crear cuenta
+              </>
             )}
           </button>
+        </form>
+
+        <div className="text-center mt-6 pt-4 border-t border-gray-200">
+          <p className="text-sm text-gray-600">
+            ¿Ya tienes una cuenta?{' '}
+            <Link
+              to="/login"
+              className="text-blue-500 hover:text-blue-600 hover:underline transition-colors"
+            >
+              Iniciar sesión
+            </Link>
+          </p>
         </div>
-
-        {/* Sign Up Button */}
-        <button
-          type="submit"
-          className="w-full bg-blue-500 text-white font-bold py-4 px-6 rounded-xl hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-        >
-          Sign Up
-        </button>
-      </form>
-
-      {/* Sign In Link */}
-      <div className="mt-8 text-center">
-        <span className="text-gray-600 text-sm">Already have an account? </span>
-        <Link
-          to="/login"
-          className="text-blue-500 hover:text-blue-600 font-medium text-sm"
-        >
-          Sign In
-        </Link>
       </div>
     </AuthLayout>
   );

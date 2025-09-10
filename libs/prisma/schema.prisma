@@ -36,6 +36,7 @@ enum UserRole {
   PROFESSIONAL
 }
 
+// adicionar time para que se pueda buscar por fecha y hora
 model Appointment {
   id             String   @id @default(cuid())
   patient        User     @relation("PatientAppointments", fields: [patientId], references: [id])
@@ -43,6 +44,7 @@ model Appointment {
   professional   User     @relation("ProfessionalAppointments", fields: [professionalId], references: [id])
   professionalId String
   date           DateTime
+  time           String @default("")
   durationMin    Int
   status         AppointmentStatus
   price          Float

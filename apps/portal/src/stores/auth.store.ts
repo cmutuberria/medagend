@@ -14,6 +14,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
     ? JSON.parse(localStorage.getItem('user')!)
     : null,
   setToken: (token) => {
+    console.log('setToken', token);
     if (token) {
       localStorage.setItem('token', token);
     } else {
@@ -23,6 +24,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
   },
 
   setUser: (user) => {
+    console.log('setUser', user);
     if (user) {
       localStorage.setItem('user', JSON.stringify(user));
     } else {

@@ -66,6 +66,21 @@ export class UserPrismaRepository implements UserRepositoryInterface {
     });
     return professionals.map(convertPrismaToDto);
   }
+  async findProfessionalsByQuery(
+    name?: string,
+    specialty?: string[]
+  ): Promise<User[]> {
+    const professionals = await this.prisma.user.findMany({
+      where: {
+        role: 'PROFESSIONAL',
+        ...(name ? { name: { contains: name, mode: 'insensitive' } } : {}),
+        ...(specialty
+          ? { specialty: { in: specialty, mode: 'insensitive' } }
+          : {}),
+      },
+    });
+    return professionals.map(convertPrismaToDto);
+  }
 
   async findPatients(): Promise<User[]> {
     const patients = await this.prisma.user.findMany({

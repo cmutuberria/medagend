@@ -46,6 +46,9 @@ export class Appointment {
   @Field(() => Date)
   date!: Date;
 
+  @Field(() => String)
+  time!: string;
+
   @Field(() => Int)
   durationMin!: number;
 

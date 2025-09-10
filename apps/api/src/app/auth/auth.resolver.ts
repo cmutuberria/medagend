@@ -1,12 +1,12 @@
-import { Resolver, Mutation, Args, Context, Query } from '@nestjs/graphql';
-import { AuthService } from './auth.service';
-import { CurrentUser } from './current-user.decorator';
 import { UseGuards } from '@nestjs/common';
-import { GqlAuthGuard } from './gql-auth.guard';
-import { User, UserRole } from '../../dto/user.dto';
+import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { AuthTokenPayload } from '../../dto/auth.dto';
 import { UserService } from '../users/users.service';
-import { Roles, RolesGuard } from './roles.guard';
+import { AuthService } from './auth.service';
+import { CurrentUser } from './current-user.decorator';
+import { GqlAuthGuard } from './gql-auth.guard';
+import { RolesGuard } from './roles.guard';
+import { User } from '../../dto/user.dto';
 
 @Resolver()
 export class AuthResolver {
@@ -19,14 +19,21 @@ export class AuthResolver {
     @Context() ctx: any
   ) {
     const user = await this.auth.validateUser(email, password);
-    const { accessToken } = await this.auth.login(user, ctx.res);
+    const { accessToken, refreshToken } = await this.auth.login(user);
+    ctx.res.cookie('jid', refreshToken, {
+      httpOnly: true,
+      sameSite: 'lax',
+      secure: false,
+      path: '/graphql',
+    });
     return accessToken;
   }
 
   @Mutation(() => String)
   async refresh(@Context() ctx: any) {
     const token = ctx.req.cookies['jid'];
-    const { accessToken } = await this.auth.refresh(token);
+    console.log('Refreshing token from cookie', token);
+    const accessToken = await this.auth.refresh(token);
     return accessToken;
   }
 

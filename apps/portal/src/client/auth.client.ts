@@ -1,6 +1,6 @@
 import { gql } from '@apollo/client';
 import { client } from '../apollo.client';
-import { User } from '../models/user.model';
+import { User, CreateUserInput } from '../models/user.model';
 
 const LOGIN_MUTATION = gql`
   mutation Login($email: String!, $password: String!) {
@@ -32,27 +32,60 @@ const LOGOUT_MUTATION = gql`
   }
 `;
 
+const REFRESH_MUTATION = gql`
+  mutation Refresh {
+    refresh
+  }
+`;
+
+const SIGNUP_MUTATION = gql`
+  mutation CreateUser($createUserInput: CreateUserInput!) {
+    createUser(createUserInput: $createUserInput) {
+      id
+      email
+      name
+      role
+      phone
+      bio
+      licenseNumber
+      specialty
+      createdAt
+    }
+  }
+`;
+
 export const authClient = {
   login: async (email: string, password: string): Promise<string> => {
-    console.log({ email, password });
     const { data } = await client.mutate({
       mutation: LOGIN_MUTATION,
       variables: { email, password },
     });
-    console.log({ data });
     return data.login;
   },
   me: async (): Promise<User> => {
     const { data } = await client.query({
       query: ME_QUERY,
+      fetchPolicy: 'network-only',
     });
-    console.log({ data });
     return data.me;
   },
   logout: async (): Promise<void> => {
-    const { data } = await client.mutate({
+    await client.mutate({
       mutation: LOGOUT_MUTATION,
+      fetchPolicy: 'network-only',
     });
-    console.log({ data });
+  },
+  refresh: async (): Promise<string> => {
+    const { data } = await client.mutate({
+      mutation: REFRESH_MUTATION,
+    });
+    return data.refresh;
+  },
+  signup: async (user: CreateUserInput): Promise<User> => {
+    const { data } = await client.mutate({
+      mutation: SIGNUP_MUTATION,
+      variables: { createUserInput: user },
+    });
+    return data.createUser;
   },
 };

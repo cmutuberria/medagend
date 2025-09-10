@@ -1,14 +1,25 @@
-import { Resolver, Query, Mutation, Args, ID } from '@nestjs/graphql';
-import { UserService } from './users.service';
-import { User, CreateUserInput, UpdateUserInput } from '../../dto/user.dto';
-import { GqlAuthGuard } from '../auth/gql-auth.guard';
 import { UseGuards } from '@nestjs/common';
-import { AuthTokenPayload } from '../../dto/auth.dto';
-import { CurrentUser } from '../auth/current-user.decorator';
+import {
+  Args,
+  ID,
+  Mutation,
+  Query,
+  Resolver,
+  ResolveField,
+  Parent,
+} from '@nestjs/graphql';
+import { CreateUserInput, UpdateUserInput, User } from '../../dto/user.dto';
+import { GqlAuthGuard } from '../auth/gql-auth.guard';
+import { UserService } from './users.service';
+import { AvailabilityService } from '../availabilities/availability.service';
+import { Availability } from '../../dto/availability.dto';
 
 @Resolver(() => User)
 export class UserResolver {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly availabilityService: AvailabilityService
+  ) {}
 
   @Mutation(() => User, { description: 'Crear un nuevo usuario' })
   createUser(@Args('createUserInput') createUserInput: CreateUserInput) {
@@ -46,6 +57,19 @@ export class UserResolver {
   }
 
   @Query(() => [User], {
+    name: 'professionalsByQuery',
+    description: 'Obtener todos los profesionales',
+  })
+  findProfessionalsByQuery(
+    @Args('name', { nullable: true }) name?: string,
+    @Args('specialty', { type: () => [String], nullable: true })
+    specialty?: string[]
+  ) {
+    console.log({ name, specialty });
+    return this.userService.findProfessionalsByQuery(name, specialty);
+  }
+
+  @Query(() => [User], {
     name: 'patients',
     description: 'Obtener todos los pacientes',
   })
@@ -62,4 +86,9 @@ export class UserResolver {
   removeUser(@Args('id', { type: () => ID }) id: string) {
     return this.userService.remove(id);
   }
+
+  // @ResolveField(() => [Availability], { name: 'availabilities' })
+  // async getAvailabilities(@Parent() user: User): Promise<Availability[]> {
+  //   return this.availabilityService.findByProfessionalId(user.id);
+  // }
 }

@@ -69,6 +69,17 @@ export class AppointmentResolver {
     return this.appointmentService.findByProfessionalId(professionalId);
   }
 
+  @Query(() => [Appointment], { name: 'appointmentsByProfessionalAndDay' })
+  findByProfessionalIdAndDay(
+    @Args('professionalId', { type: () => ID }) professionalId: string,
+    @Args('date', { type: () => Date }) date: Date
+  ) {
+    return this.appointmentService.findByProfessionalIdAndDay(
+      professionalId,
+      date
+    );
+  }
+
   @Query(() => [Appointment], { name: 'appointmentsByStatus' })
   findByStatus(@Args('status', { type: () => String }) status: string) {
     return this.appointmentService.findByStatus(status);

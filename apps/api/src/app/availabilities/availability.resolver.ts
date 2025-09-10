@@ -69,6 +69,7 @@ export class AvailabilityResolver {
     @Args('professionalId', { type: () => ID }) professionalId: string,
     @Args('dayOfWeek', { type: () => Int }) dayOfWeek: number
   ) {
+    console.log('findByProfessionalAndDay resolver', professionalId, dayOfWeek);
     return this.availabilityService.findByProfessionalAndDay(
       professionalId,
       dayOfWeek

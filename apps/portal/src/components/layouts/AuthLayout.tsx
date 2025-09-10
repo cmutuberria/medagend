@@ -3,10 +3,9 @@ import Logo from '../Logo';
 
 interface AuthLayoutProps {
   children: React.ReactNode;
-  title: string;
 }
 
-export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title }) => {
+export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Background with Logo */}
@@ -45,33 +44,12 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title }) => {
       </div>
       {/* Right Side - Form Content */}
       <div className="flex-1 bg-gray-50 flex flex-col">
-        {/* Navigation Bar */}
-        <div className="bg-white px-4 py-3 flex items-center">
-          {/* <button
-            onClick={() => window.history.back()}
-            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
-          >
-            <svg
-              className="w-5 h-5 text-gray-700"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 19l-7-7 7-7"
-              />
-            </svg>
-          </button> */}
-          <h1 className="flex-1 text-center text-lg font-bold text-gray-900 mr-10">
-            {title}
-          </h1>
-        </div>
-
         {/* Main Content */}
-        <div className="flex-1 px-6 py-8">{children}</div>
+        <div className="min-h-screen flex items-center justify-center p-4">
+          <div className="w-full lg:max-w-md bg-white rounded-lg shadow-xl border-0">
+            {children}
+          </div>
+        </div>
       </div>
     </div>
   );

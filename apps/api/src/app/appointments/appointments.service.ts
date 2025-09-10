@@ -129,6 +129,15 @@ export class AppointmentService {
   async findByProfessionalId(professionalId: string): Promise<Appointment[]> {
     return this.appointmentRepository.findByProfessionalId(professionalId);
   }
+  async findByProfessionalIdAndDay(
+    professionalId: string,
+    date: Date
+  ): Promise<Appointment[]> {
+    return this.appointmentRepository.findByProfessionalIdAndDay(
+      professionalId,
+      date
+    );
+  }
 
   async findByStatus(status: string): Promise<Appointment[]> {
     // Validar que el status sea válido

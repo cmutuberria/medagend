@@ -73,9 +73,6 @@ export class AvailabilityPrismaRepository
   async findByProfessionalId(professionalId: string): Promise<Availability[]> {
     const availabilities = await this.prisma.availability.findMany({
       where: { professionalId },
-      include: {
-        professional: true,
-      },
     });
     return availabilities.map(convertPrismaToDto);
   }
@@ -88,9 +85,6 @@ export class AvailabilityPrismaRepository
       where: {
         professionalId,
         dayOfWeek,
-      },
-      include: {
-        professional: true,
       },
     });
     return availabilities.map(convertPrismaToDto);

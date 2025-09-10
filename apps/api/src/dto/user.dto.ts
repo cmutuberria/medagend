@@ -9,6 +9,7 @@ import {
 } from '@nestjs/graphql';
 import { User as PrismaUser } from '@prisma/client';
 import { nullToUndefined } from '../utils/null-to-undefined';
+import { Availability } from './availability.dto';
 
 export enum UserRole {
   PATIENT = 'PATIENT',
@@ -18,6 +19,26 @@ export enum UserRole {
 registerEnumType(UserRole, {
   name: 'UserRole',
   description: 'Roles de usuario en el sistema',
+});
+
+export enum Specialty {
+  CARDIOLOGY = 'CARDIOLOGY',
+  DERMATOLOGY = 'DERMATOLOGY',
+  ENDOCRINOLOGY = 'ENDOCRINOLOGY',
+  GASTROENTEROLOGY = 'GASTROENTEROLOGY',
+  GYNECOLOGY = 'GYNECOLOGY',
+  MEDICINE = 'MEDICINE',
+  NEUROLOGY = 'NEUROLOGY',
+  OPHTHALMOLOGY = 'OPHTHALMOLOGY',
+  PEDIATRICS = 'PEDIATRICS',
+  PSYCHIATRY = 'PSYCHIATRY',
+  RADIOLOGY = 'RADIOLOGY',
+  TRAUMATOLOGY = 'TRAUMATOLOGY',
+}
+
+registerEnumType(Specialty, {
+  name: 'Specialty',
+  description: 'Especialidades de usuario en el sistema',
 });
 
 @ObjectType()
@@ -47,19 +68,22 @@ export class User {
   licenseNumber?: string;
 
   @Field({ nullable: true })
-  specialty?: string;
+  specialty?: Specialty;
 
   @Field()
   createdAt!: Date;
 
   @Field()
   updatedAt!: Date;
+
+  @Field(() => [Availability], { nullable: true })
+  availabilities?: Availability[];
 }
 
 @InputType()
 export class CreateUserInput extends OmitType(
   User,
-  ['id', 'createdAt', 'updatedAt'] as const,
+  ['id', 'createdAt', 'updatedAt', 'availabilities'] as const,
   InputType
 ) {
   @Field()
@@ -79,6 +103,10 @@ export function convertPrismaToDto(user: PrismaUser): User {
     phone: nullToUndefined(user.phone),
     bio: nullToUndefined(user.bio),
     licenseNumber: nullToUndefined(user.licenseNumber),
-    specialty: nullToUndefined(user.specialty),
+    specialty:
+      user.specialty &&
+      Object.values(Specialty).includes(user.specialty as Specialty)
+        ? (user.specialty as Specialty)
+        : undefined,
   };
 }

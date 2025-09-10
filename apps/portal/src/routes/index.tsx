@@ -3,8 +3,10 @@ import { Route, Routes, Navigate } from 'react-router-dom';
 import LoginPage from '../pages/login';
 import SignUpPage from '../pages/signup';
 import DashboardPage from '../pages/dashboard';
+import { DoctorDetailPage } from '../pages/doctor-detail';
 import ProtectedRoute from '../components/ProtectedRoute';
 import PublicRoute from '../components/PublicRoute';
+import Layout from '../components/layouts/Layout';
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -32,7 +34,19 @@ export const AppRoutes: React.FC = () => {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <DashboardPage />
+            <Layout>
+              <DashboardPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/doctor/:id"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <DoctorDetailPage />
+            </Layout>
           </ProtectedRoute>
         }
       />
